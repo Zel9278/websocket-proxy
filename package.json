@@ -3,6 +3,7 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "http-proxy": "^1.18.1",
     "query-string": "^6.2.0",
     "ws": "^6.0.0"
   }
