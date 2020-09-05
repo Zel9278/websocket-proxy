@@ -1,15 +1,15 @@
 var WebSocket = require('ws');
 var {parse:parseQueryString} = require('query-string');
-var wss = new WebSocket.Server({
+var ws = new WebSocket.Server({
 	port: process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 8080
 });
 var conncount = 0;
-wss.on('connection', function (cws, req){
+ws.on('connection', function (cws, req){
 	var number = conncount++;
-	console.log(`New connection #${number} from ${req.connection.remoteAddress} with ${req.url}`);
+	/*console.log(`New connection #${number} from ${req.connection.remoteAddress} with ${req.url}`);
 	cws.on('close', function(){
-		console.log(`Closing connection #${number} from ${req.connection.remoteAddress}`);
-	});
+		console.log(`Closing connection from ${req.connection.remoteAddress}`);
+	});*/
 
 	var querystring = req.url.substr(1);
 	if (!querystring) return cws.close();
@@ -26,7 +26,7 @@ wss.on('connection', function (cws, req){
 		cws.close();
 		return;
 	}
-	
+
 	// client to target
 	var messageBuffer = [];
 	tws.on('open', function(){
@@ -52,3 +52,11 @@ wss.on('connection', function (cws, req){
 	});
 	tws.on('error', console.error);
 });
+
+setInterval(() => console.clear(), 500);
+
+/*process.on('uncaughtException', (err) => {
+	console.log("UnhandledException: " + err);
+});*/
+
+undefined;
