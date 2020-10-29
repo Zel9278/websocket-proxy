@@ -1,12 +1,21 @@
+var parseEnv=env_string=>Object.fromEntries(env_string.split(/\r\n|\r|\n/g).filter(l=>l.match(/[^ =]+=[^ =]+/)).map(l=>l.split("=")));
+var fs  = require("fs");
+var env = parseEnv(fs.readFileSync("./.env", "utf8"));
+
 var WebSocket = require('ws');
 var {parse:parseQueryString} = require('query-string');
 var ws = new WebSocket.Server({
-	port: process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 8080
+	port: 10016,
+	verifyClient: onAuth
 });
+
 var conncount = 0;
 ws.on('connection', function (cws, req){
-	var number = conncount++;
-	/*console.log(`New connection #${number} from ${req.connection.remoteAddress} with ${req.url}`);
+	var clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+	console.log(`[main] ${clientIp}: New connection with ${req.url}`);
+	
+	/*var number = conncount++;
+	console.log(`New connection #${number} from ${req.connection.remoteAddress} with ${req.url}`);
 	cws.on('close', function(){
 		console.log(`Closing connection from ${req.connection.remoteAddress}`);
 	});*/
@@ -41,7 +50,9 @@ ws.on('connection', function (cws, req){
 		tws.close();
 		messageBuffer = undefined;
 	});
-	cws.on('error', console.error);
+	cws.on('error', (e) => {
+		console.error(`[client-ws] ${clientIp}: ${e.toString()}`);
+	});
 
 	// target to client
 	tws.on('message', function(message){
@@ -50,10 +61,18 @@ ws.on('connection', function (cws, req){
 	tws.on('close', function(){
 		cws.close();
 	});
-	tws.on('error', console.error);
+	tws.on('error', (e) => {
+		console.error(`[target-ws] ${clientIp}: ${e.toString()}`);
+	});
 });
 
-setInterval(() => console.clear(), 500);
+//setInterval(() => console.clear(), 500);
+
+function onAuth(info, cb) {
+	var pass = info.req.headers.password;
+	if (!pass || !(pass === env.pass)) cb(false, 401, 'Unauthorized');
+	cb(true);
+}
 
 /*process.on('uncaughtException', (err) => {
 	console.log("UnhandledException: " + err);
