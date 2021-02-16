@@ -1,6 +1,6 @@
 var parseEnv=env_string=>Object.fromEntries(env_string.split(/\r\n|\r|\n/g).filter(l=>l.match(/[^ =]+=[^ =]+/)).map(l=>l.split("=")));
 var fs  = require("fs");
-var env = parseEnv(fs.readFileSync("./.env", "utf8"));
+var env = parseEnv(fs.readFileSync("./.env", "utf8")) || process.env;
 
 var WebSocket = require('ws');
 var {parse:parseQueryString} = require('query-string');
